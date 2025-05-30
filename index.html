@@ -1,0 +1,64 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Loja F1 - Início</title>
+  <link rel="stylesheet" href="css/style.css">
+  <header>
+    <img src="img/logo_loja_f1.png" alt="Loja F1" class="logo">
+    <nav class="nav">
+        <div class="menu-toggle" onclick="toggleMenu()">☰ Menu</div>
+        <ul id="menu" class="menu">
+            <li><a href="#">Suporte</a></li>
+            <li><a href="#">Contato</a></li>
+            <li><a href="#">Dúvidas</a></li>
+        </ul>
+</nav>
+
+  </header>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+</head>
+<body>
+  <h1>Vista a camiseta da sua equipe F1!</h1>
+
+ <!-- LOGIN VENDEDOR + CLIENTE LADO A LADO -->
+<div class="login-container">
+  <section>
+    <h2><i class="fas fa-user-tie"></i> Sou Vendedor</h2>
+    <form action="php/login_vendedor.php" method="POST">
+      <input type="text" name="cpf" placeholder="CPF" required><br>
+      <input type="password" name="senha" placeholder="Senha" required><br>
+      <button type="submit">Entrar como Vendedor</button>
+    </form>
+  </section>
+
+  <section>
+    <h2><i class="fas fa-user"></i> Sou Cliente</h2>
+    <form action="php/login_cliente.php" method="POST">
+      <input type="text" name="cpf" placeholder="CPF" required><br>
+      <input type="password" name="senha" placeholder="Senha" required><br>
+      <button type="submit">Entrar como Cliente</button>
+    </form>
+    <p>Primeira vez aqui? <a href="cadastro_cliente.html">Criar conta</a></p>
+  </section>
+</div>
+
+
+  <!-- ACESSO DIRETO CLIENTE -->
+  <section>
+    <h2>Ou acesse direto como visitante</h2>
+    <a href="cliente.html"><button>Acessar os Produtos</button></a>
+  </section>
+</body>
+</html>
+
+<script>
+function toggleMenu() {
+  const menu = document.getElementById('menu');
+  menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+}
+</script>
