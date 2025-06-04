@@ -149,3 +149,38 @@ form {
 header {
     background-color: #b3afaf;
 }
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 30px;
+  padding: 20px;
+}
+
+.card {
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #ccc;
+  padding: 10px;
+  width: 200px;
+  text-align: center;
+}
+
+.card img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.card h3 {
+  font-size: 16px;
+  margin: 10px 0 0;
+}
+
+.card .preco {
+  font-weight: bold;
+  font-size: 18px;
+  margin-top: 5px;
+  color: #111;
+}

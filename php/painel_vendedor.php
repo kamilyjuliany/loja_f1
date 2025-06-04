@@ -46,7 +46,8 @@ if (!isset($_SESSION['vendedor_id'])) {
     <hr>
 
     <h2>Cadastrar Novo Produto</h2>
-    <form action="cadastrar_produto.php" method="POST">
+    <form action="cadastrar_produto.php" method="POST" enctype="multipart/form-data">
+      <input type="file" name="imagem" accept="image/*" required><br>
       <input type="text" name="nome" placeholder="Nome do produto" required><br>
       <input type="number" name="valor" placeholder="Valor (R$)" step="0.01" required><br>
       <select name="tamanho" required>
