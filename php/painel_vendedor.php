@@ -121,17 +121,20 @@ if (isset($_GET['sucesso']) && $_GET['sucesso'] == 1) {
         <option>G</option>
         <option>GG</option>
       </select>
-      <select name="equipe" required>
-        <option disabled selected>Selecione a equipe</option>
-        <option>Ferrari</option>
-        <option>Mercedes</option>
-        <option>RedBull</option>
-        <option>McLaren</option>
-        <option>Stake</option>
-        <option>Visa Cash</option>
-        <option>Haas</option>
-        <option>Williams</option>
-      </select>
+     <select name="equipe" required>
+      <option disabled selected>Selecione a equipe</option>
+      <option>Ferrari</option>
+      <option>Mercedes</option>
+      <option>RedBull</option>
+      <option>McLaren</option>
+      <option>Haas</option>
+      <option>Williams</option>
+      <option>Alpine</option>
+      <option>Aston Martin</option>
+      <option>Stake</option>
+      <option>Visa Cash</option>
+    </select>
+
       <button type="submit">Cadastrar Produto</button>
     </form>
   </div>

@@ -34,11 +34,77 @@
 <body>
   <h2>Produtos Disponíveis</h2>
 
+<!-- filtro de equipes -->
+<div class="filter-bar">
+  <button class="filter-btn active" data-team="All">Todas</button>
+
+  <button class="filter-btn" data-team="Ferrari">
+    <img src="img/equipes/ferrari.jpg" alt="Ferrari">
+  </button>
+
+  <button class="filter-btn" data-team="Mercedes">
+    <img src="img/equipes/mercedes.jpg" alt="Mercedes">
+  </button>
+
+  <button class="filter-btn" data-team="RedBull">
+    <img src="img/equipes/redbull.jpg" alt="Red Bull">
+  </button>
+
+  <button class="filter-btn" data-team="McLaren">
+    <img src="img/equipes/mclaren.png" alt="McLaren">
+  </button>
+
+  <button class="filter-btn" data-team="Haas">
+    <img src="img/equipes/haas.jpg" alt="Haas">
+  </button>
+
+  <button class="filter-btn" data-team="Williams">
+    <img src="img/equipes/williams.png" alt="Williams">
+  </button>
+
+  <button class="filter-btn" data-team="Stake">
+    <img src="img/equipes/stake.jpg" alt="Stake">
+  </button>
+
+  <button class="filter-btn" data-team="Visa Cash">
+    <img src="img/equipes/visacash.png" alt="Visa Cash">
+  </button>
+
+  <button class="filter-btn" data-team="Aston Martin">
+    <img src="img/equipes/astonmartin.png" alt="Aston Martin">
+  </button>
+
+  <button class="filter-btn" data-team="Alpine">
+    <img src="img/equipes/alpine.jpg" alt="Alpine">
+  </button>
+</div>
+
+
+<script>
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      // marca só o botão clicado como ativo
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const team = btn.dataset.team; // pode ser "All" ou nome da equipe
+      document.querySelectorAll('.product-card').forEach(card => {
+        if (team === 'All' || card.dataset.team === team) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    });
+  });
+</script>
+
+
   <?php include 'php/listar_produtos.php'; ?>
 
   
   <br><br>
-  <a href="cadastro_cliente.html">Cadastrar Cliente</a>
+  
 
   <div id="modal" class="modal" style="display:none;">
   <div class="modal-content">
