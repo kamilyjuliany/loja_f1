@@ -8,27 +8,77 @@ if (!isset($_SESSION['id_cliente'])) {
 
 $id_cliente = $_SESSION['id_cliente'];
 
-// Recebe os dados da compra (vindo via POST do carrinho)
-$dados = json_decode(file_get_contents("php://input"), true);
+// Buscar as últimas compras do cliente
+$sql = "SELECT nome_produto, preco, quantidade, forma_pagamento, data_compra 
+        FROM compras 
+        WHERE id_cliente = ? 
+        ORDER BY data_compra DESC 
+        LIMIT 10";
 
-if (!$dados || !isset($dados['carrinho']) || !isset($dados['pagamento'])) {
-  die("Dados inválidos.");
-}
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $id_cliente);
+$stmt->execute();
+$result = $stmt->get_result();
+?>
 
-$carrinho = $dados['carrinho'];
-$forma_pagamento = $dados['pagamento'];
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Comprovante de Compra</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    body { font-family: Arial; padding: 40px; background: #f5f5f5; }
+    h1 { text-align: center; color: green; }
+    .compra { margin: 20px auto; max-width: 600px; background: white; padding: 20px; border-radius: 10px; }
+    .item { border-bottom: 1px solid #ccc; padding: 10px 0; }
+    .total { font-size: 18px; font-weight: bold; text-align: right; }
+  </style>
+</head>
+<body>
+  <h1>Comprovante de Compra</h1>
+  <div class="compra">
+    <?php
+    $total = 0;
+    while ($row = $result->fetch_assoc()):
+      $subtotal = $row['preco'] * $row['quantidade'];
+      $total += $subtotal;
+    ?>
+      <div class="item">
+        <strong><?= $row['nome_produto'] ?></strong><br>
+        Quantidade: <?= $row['quantidade'] ?><br>
+        Preço unitário: R$ <?= number_format($row['preco'], 2, ',', '.') ?><br>
+        Subtotal: R$ <?= number_format($subtotal, 2, ',', '.') ?><br>
+        Forma de pagamento: <?= $row['forma_pagamento'] ?><br>
+        Data: <?= date('d/m/Y H:i', strtotime($row['data_compra'])) ?>
+      </div>
+    <?php endwhile; ?>
+    <p class="total">Total da compra: R$ <?= number_format($total, 2, ',', '.') ?></p>
+  </div>
 
-// Insere cada item da compra no banco
-foreach ($carrinho as $item) {
-  $nome = $item['nome'];
-  $valor = $item['valor'];
-  $qtd = $item['quantidade'];
+  <div style="text-align: center; margin-top: 30px;">
+  <button onclick="voltarParaInicio()" style="
+    padding: 10px 20px;
+    background-color: green;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;">
+    Voltar para Loja
+  </button>
+</div>
 
-  $stmt = $conn->prepare("INSERT INTO compras (id_cliente, nome_produto, preco, quantidade, forma_pagamento) VALUES (?, ?, ?, ?, ?)");
-  $stmt->bind_param("isdss", $id_cliente, $nome, $valor, $qtd, $forma_pagamento);
-  $stmt->execute();
-}
+<script>
+  function voltarParaInicio() {
+    localStorage.removeItem("carrinho"); // limpa o carrinho
+    window.location.href = "../cliente.php"; // volta para a loja
+  }
+  
+  $conn->query("DELETE FROM compras WHERE id_cliente = $id_cliente AND data_compra = '$data_compra'");
 
-// Redireciona para gerar o comprovante
-header("Location: comprovante.php");
-exit;
+</script>
+
+</body>
+</html>
+

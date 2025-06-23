@@ -5,13 +5,14 @@ include __DIR__ . '/../db/conexao.php';
 
 
 if (!isset($_SESSION['id_cliente'])) {
-  die("Você precisa estar logado como cliente.");
+  header("Location: login_cliente.php");
+exit;
 }
 
 $id_cliente = $_SESSION['id_cliente'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $produtos = json_decode($_POST['produtos'], true); // <- CORRIGIDO
+  $produtos = json_decode($_POST['produtos'], true); 
   $forma_pagamento = $_POST['pagamento'];
 
   foreach ($produtos as $p) {
@@ -25,7 +26,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 
   header("Location: comprovante.php");
-  exit;
+exit;
+
+
 }
 
 ?>
@@ -80,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="metodo">
         <input type="radio" name="pagamento" value="Pix" id="pix" required>
         <label for="pix">Pix</label><br>
-        <img src="img/pix_qrcode_exemplo.png" alt="Pix QR Code" class="pix-img" id="img-pix">
+        <img src="../img/qrcode.png" alt="Pix QR Code" class="pix-img" id="img-pix">
       </div>
 
       <div class="metodo">
@@ -97,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="metodo">
         <input type="radio" name="pagamento" value="Boleto" id="boleto">
         <label for="boleto">Boleto Bancário</label><br>
-        <img src="img/boleto_exemplo.png" alt="Boleto" class="boleto-img" id="img-boleto">
+        <img src="../img/boleto.png" alt="Boleto" class="boleto-img" id="img-boleto">
       </div>
 
       <button type="submit">Confirmar Pagamento</button>
@@ -124,5 +127,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     const carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
     document.getElementById('produtos-hidden').value = JSON.stringify(carrinho);
   </script>
+
+  
 </body>
 </html>
+
