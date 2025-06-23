@@ -23,9 +23,70 @@
     }
   </script>
 
+<style>
+  .notificacao {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #28a745;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.2);
+    z-index: 9999;
+    font-weight: bold;
+    animation: fadein 0.3s ease, fadeout 0.5s ease 1.5s;
+  }
+
+  @keyframes fadein {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeout {
+    from { opacity: 1; }
+    to { opacity: 0; transform: translateY(-10px); }
+  }
+</style>
+
   <header>
     <img src="img/logo_loja_f1.png" alt="Logo" class="logo">
     <a href="carrinho.html" id="carrinho-btn">🛒 Ver Carrinho</a>
+    <div style="text-align: center; margin-top: 20px;">
+
+  <div style="display: flex; justify-content: center; gap: 20px; margin-top: 20px;">
+  <a href="php/login_cliente.php">
+    <button style="
+      padding: 10px 25px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    " onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+      Login Cliente
+    </button>
+  </a>
+
+  <a href="php/cadastrar_cliente.php">
+    <button style="
+      padding: 10px 25px;
+      background-color: green;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    " onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+      Cadastrar Cliente
+    </button>
+  </a>
+</div>
+
+
   </header>
   
 </head>
@@ -106,17 +167,27 @@
   <br><br>
   
 
-  <div id="modal" class="modal" style="display:none;">
-  <div class="modal-content">
-    <span class="close" onclick="fecharModal()">&times;</span>
-    <img id="modal-img" src="" alt="" style="width:200px;height:200px;object-fit:contain;">
-    <h2 id="modal-nome"></h2>
-    <p id="modal-equipe"></p>
-    <p id="modal-tamanho"></p>
-    <p id="modal-preco" style="font-weight:bold;"></p>
-    <button onclick="adicionarAoCarrinho()">Adicionar ao Carrinho</button>
+  <div id="modal" class="modal">
+  <div class="modal-content fade-in">
+    <span class="close-btn" onclick="fecharModal()">&times;</span>
+
+    <img id="modal-img" src="" alt="" class="modal-img">
+
+    <h2 id="modal-nome" class="modal-title"></h2>
+    <p id="modal-equipe" class="modal-info"></p>
+    <p id="modal-tamanho" class="modal-info"></p>
+    <p id="modal-preco" class="modal-price"></p>
+
+    <label for="quantidade" class="modal-label">Quantidade:</label>
+    <div class="quantidade-container">
+      <input type="number" id="modal-quantidade" min="1" value="1" class="quantidade-input">
+    </div>
+
+    <button onclick="adicionarAoCarrinho()" class="btn-add">Adicionar ao Carrinho</button>
   </div>
 </div>
+
+
 
 
 <footer>
@@ -127,7 +198,7 @@
 </html>
 
 <script>
-  let produtoSelecionado = null;
+let produtoSelecionado = null;
 
 function abrirModal(produto) {
   produtoSelecionado = produto;
@@ -136,6 +207,7 @@ function abrirModal(produto) {
   document.getElementById('modal-equipe').innerText = "Equipe: " + produto.equipe;
   document.getElementById('modal-tamanho').innerText = "Tamanho: " + produto.tamanho;
   document.getElementById('modal-preco').innerText = "R$ " + Number(produto.valor).toFixed(2).replace('.', ',');
+  document.getElementById('modal-quantidade').value = 1;
 
   document.getElementById('modal').style.display = "flex";
 }
@@ -146,10 +218,33 @@ function fecharModal() {
 
 function adicionarAoCarrinho() {
   let carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
-  carrinho.push(produtoSelecionado);
+
+  const quantidade = parseInt(document.getElementById("modal-quantidade").value);
+  if (quantidade <= 0) {
+    alert("Quantidade inválida");
+    return;
+  }
+
+  carrinho.push({
+    ...produtoSelecionado,
+    quantidade: quantidade
+  });
+
   localStorage.setItem("carrinho", JSON.stringify(carrinho));
-  alert("Produto adicionado ao carrinho!");
+  mostrarNotificacao("Produto adicionado ao carrinho!");
   fecharModal();
 }
 
-  </script>
+function mostrarNotificacao(mensagem) {
+  const notif = document.createElement("div");
+  notif.className = "notificacao";
+  notif.innerText = mensagem;
+  document.body.appendChild(notif);
+
+  setTimeout(() => {
+    notif.remove();
+  }, 2000);
+}
+
+
+</script>
