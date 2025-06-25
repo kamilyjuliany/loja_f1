@@ -2,11 +2,6 @@
 session_start();
 include '../db/conexao.php';
 
-// Verifica se o cliente está logado
-if (!isset($_SESSION['id_cliente'])) {
-  die("Cliente não autenticado.");
-}
-$id_cliente = $_SESSION['id_cliente'];
 
 // Verifica se a data da compra foi enviada via GET
 if (!isset($_GET['data'])) {
@@ -20,8 +15,8 @@ $sql = "SELECT nome_produto, preco, quantidade, forma_pagamento, data_compra
         WHERE id_cliente = ? AND data_compra = ?
         ORDER BY data_compra DESC";
 
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("is", $id_cliente, $data_compra);
+$stmt = $conn->prepare("INSERT INTO compras (nome_produto, preco, quantidade, forma_pagamento) VALUES (?, ?, ?, ?)");
+$stmt->bind_param("sdss", $nome, $valor, $qtd, $forma_pagamento);
 $stmt->execute();
 $result = $stmt->get_result();
 ?>

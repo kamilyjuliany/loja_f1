@@ -2,21 +2,16 @@
 session_start();
 include '../db/conexao.php';
 
-if (!isset($_SESSION['id_cliente'])) {
-  die("Cliente não autenticado.");
-}
 
 $id_cliente = $_SESSION['id_cliente'];
 
-// Buscar as últimas compras do cliente
 $sql = "SELECT nome_produto, preco, quantidade, forma_pagamento, data_compra 
         FROM compras 
-        WHERE id_cliente = ? 
-        ORDER BY data_compra DESC 
-        LIMIT 10";
-
+        WHERE data_compra = ?
+        ORDER BY data_compra DESC";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $id_cliente);
+$stmt->bind_param("s", $data_compra);
+
 $stmt->execute();
 $result = $stmt->get_result();
 ?>
