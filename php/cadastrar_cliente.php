@@ -6,7 +6,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $nome = $_POST['nome'];
   $cpf = $_POST['cpf'];
   $email = $_POST['email'];
-  $senha = password_hash($_POST['senha'], PASSWORD_DEFAULT);
+  $senha = $_POST['senha'];
 
   $stmt = $conn->prepare("INSERT INTO clientes (nome, cpf, email, senha) VALUES (?, ?, ?, ?)");
   $stmt->bind_param("ssss", $nome, $cpf, $email, $senha);

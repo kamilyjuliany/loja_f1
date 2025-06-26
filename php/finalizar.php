@@ -41,7 +41,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   // Redireciona para o comprovante
   header("Location: comprovante.php");
-  exit;
+exit;
+
+
 }
 
 echo "Acesso inválido.";
@@ -88,7 +90,7 @@ exit;
       <div class="metodo">
         <input type="radio" name="pagamento" value="Pix" id="pix" required>
         <label for="pix">Pix</label><br>
-        <img src="../img/pix_qrcode_exemplo.png" alt="Pix QR Code" class="pix-img" id="img-pix">
+        <img src="../img/qrcode.png" alt="Pix QR Code" class="pix-img" id="img-pix">
       </div>
 
       <div class="metodo">
@@ -105,7 +107,7 @@ exit;
       <div class="metodo">
         <input type="radio" name="pagamento" value="Boleto" id="boleto">
         <label for="boleto">Boleto Bancário</label><br>
-        <img src="../img/boleto_exemplo.png" alt="Boleto" class="boleto-img" id="img-boleto">
+        <img src="../img/boleto.png" alt="Boleto" class="boleto-img" id="img-boleto">
       </div>
 
       <button type="submit">Confirmar Pagamento</button>
@@ -164,3 +166,4 @@ exit;
   
 </body>
 </html>
+

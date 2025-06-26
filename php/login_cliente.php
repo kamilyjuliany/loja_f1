@@ -23,83 +23,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 } else {
   echo "Acesso inválido.";
 }
+$data_compra = $_GET['data'];
+
+// Consulta os dados da compra
+$sql = "SELECT nome_produto, preco, quantidade, forma_pagamento, data_compra 
+        FROM compras 
+        WHERE id_cliente = ? AND data_compra = ?
+        ORDER BY data_compra DESC";
+
+$stmt = $conn->prepare("INSERT INTO compras (nome_produto, preco, quantidade, forma_pagamento) VALUES (?, ?, ?, ?)");
+$stmt->bind_param("sdss", $nome, $valor, $qtd, $forma_pagamento);
+$stmt->execute();
+$result = $stmt->get_result();
 ?>
+
 
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Login Cliente</title>
+  <title>Comprovante de Compra</title>
   <link rel="stylesheet" href="../css/style.css">
   <style>
-    body {
-      background-color: #f5f5f5;
-      font-family: Arial, sans-serif;
-    }
-    .container {
-      max-width: 400px;
-      margin: 60px auto;
-      padding: 20px;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    body { font-family: Arial; padding: 40px; background: #f5f5f5; }
+    h1 { text-align: center; color: green; }
+    .compra { margin: 20px auto; max-width: 600px; background: white; padding: 20px; border-radius: 10px; }
+    .item { border-bottom: 1px solid #ccc; padding: 10px 0; }
+    .total { font-size: 18px; font-weight: bold; text-align: right; }
+    .voltar {
       text-align: center;
+      margin-top: 30px;
     }
-    input {
-      display: block;
-      width: 100%;
-      padding: 10px;
-      margin: 15px 0;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-    button {
-      background: #007bff;
-      color: #fff;
+    .voltar button {
+      padding: 10px 20px;
+      background-color: green;
+      color: white;
       border: none;
-      padding: 10px;
-      width: 100%;
       border-radius: 6px;
-      cursor: pointer;
       font-size: 16px;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-    .erro {
-      color: red;
-      margin-top: 10px;
-    }
-    .links {
-      margin-top: 20px;
-    }
-    .links a {
-      display: inline-block;
-      margin: 5px;
-      color: #007bff;
-      text-decoration: none;
-    }
-    .links a:hover {
-      text-decoration: underline;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Login do Cliente</h2>
-    <form method="POST" action="">
-      <input type="text" name="cpf" placeholder="CPF" required>
-      <input type="password" name="senha" placeholder="Senha" required>
-      <button type="submit">Entrar</button>
-    </form>
-    <?php if ($erro): ?>
-      <p class="erro"><?= $erro ?></p>
-    <?php endif; ?>
-
-    <div class="links">
-      <a href="cadastrar_cliente.php">Não tem conta? Cadastre-se</a><br>
-      <a href="../cliente.php">Voltar para a Loja</a>
-    </div>
+  <h1>Comprovante de Compra</h1>
+  <div class="compra">
+    <?php
+    $total = 0;
+    while ($row = $result->fetch_assoc()):
+      $subtotal = $row['preco'] * $row['quantidade'];
+      $total += $subtotal;
+    ?>
+      <div class="item">
+        <strong><?= $row['nome_produto'] ?></strong><br>
+        Quantidade: <?= $row['quantidade'] ?><br>
+        Preço unitário: R$ <?= number_format($row['preco'], 2, ',', '.') ?><br>
+        Subtotal: R$ <?= number_format($subtotal, 2, ',', '.') ?><br>
+        Forma de pagamento: <?= $row['forma_pagamento'] ?><br>
+        Data: <?= date('d/m/Y H:i', strtotime($row['data_compra'])) ?>
+      </div>
+    <?php endwhile; ?>
+    <p class="total">Total da compra: R$ <?= number_format($total, 2, ',', '.') ?></p>
   </div>
+
+  <div class="voltar">
+    <button onclick="voltarParaInicio()">Voltar para Loja</button>
+  </div>
+
+  <script>
+    function voltarParaInicio() {
+      localStorage.removeItem("carrinho");
+      window.location.href = "../cliente.php";
+    }
+  </script>
 </body>
 </html>
