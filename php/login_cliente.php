@@ -1,32 +1,27 @@
 <?php
+// php/login_cliente.php
 session_start();
-include('../db/conexao.php');
-
-
-$erro = "";
+include '../db/conexao.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $cpf = $_POST['cpf'];
   $senha = $_POST['senha'];
 
-  $stmt = $conn->prepare("SELECT id, senha FROM clientes WHERE cpf = ?");
-  $stmt->bind_param("s", $cpf);
+  $stmt = $conn->prepare("SELECT id_cliente FROM clientes WHERE cpf = ? AND senha = ?");
+  $stmt->bind_param("ss", $cpf, $senha);
   $stmt->execute();
-  $resultado = $stmt->get_result();
+  $result = $stmt->get_result();
 
-  if ($resultado->num_rows === 1) {
-    $usuario = $resultado->fetch_assoc();
-
-    if (password_verify($senha, $usuario['senha'])) {
-      $_SESSION['id_cliente'] = $usuario['id'];
-      header('Location: ../cliente.php');
-      exit;
-    } else {
-      $erro = "Senha incorreta.";
-    }
+  if ($result->num_rows === 1) {
+    $row = $result->fetch_assoc();
+    $_SESSION['id_cliente'] = $row['id_cliente'];
+    header("Location: ../cliente.php");
+    exit;
   } else {
-    $erro = "CPF não encontrado.";
+    echo "CPF ou senha incorretos.";
   }
+} else {
+  echo "Acesso inválido.";
 }
 ?>
 

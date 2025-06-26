@@ -1,41 +1,61 @@
+
 <?php
-// finalizar.php
 session_start();
-include __DIR__ . '/../db/conexao.php';
-
-
-if (!isset($_SESSION['id_cliente'])) {
-  die("Você precisa estar logado como cliente.");
-}
-
-$id_cliente = $_SESSION['id_cliente'];
+include '../db/conexao.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $produtos = json_decode($_POST['produtos'], true); // <- CORRIGIDO
-  $forma_pagamento = $_POST['pagamento'];
+  $dados = json_decode(file_get_contents("php://input"), true);
 
-  foreach ($produtos as $p) {
-    $nome = $conn->real_escape_string($p['nome']);
-    $valor = floatval($p['valor']);
-    $qtd = intval($p['quantidade']);
+  if (!isset($dados['carrinho']) || !isset($dados['pagamento'])) {
+    http_response_code(400);
+    echo "Dados da compra incompletos.";
+    exit;
+  }
 
-    $stmt = $conn->prepare("INSERT INTO compras (id_cliente, nome_produto, preco, quantidade, forma_pagamento) VALUES (?, ?, ?, ?, ?)");
-    $stmt->bind_param("isdss", $id_cliente, $nome, $valor, $qtd, $forma_pagamento);
+  $carrinho = $dados['carrinho'];
+  $forma_pagamento = $dados['pagamento'];
+  $data_compra = date('Y-m-d H:i:s');
+
+  $_SESSION['ultima_compra'] = $data_compra;
+
+  foreach ($carrinho as $item) {
+    $nome = $conn->real_escape_string($item['nome']);
+    $valor = floatval($item['valor']);
+    $qtd = intval($item['quantidade']);
+
+    $sql = "INSERT INTO compras (nome_produto, preco, quantidade, forma_pagamento, data_compra";
+    $params = "sdiss";
+    $values = [$nome, $valor, $qtd, $forma_pagamento, $data_compra];
+
+    if (isset($_SESSION['id_cliente'])) {
+      $sql .= ", id_cliente";
+      $params .= "i";
+      $values[] = $_SESSION['id_cliente'];
+    }
+
+    $sql .= ") VALUES (?, ?, ?, ?, ?" . (isset($_SESSION['id_cliente']) ? ", ?" : "") . ")";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param($params, ...$values);
     $stmt->execute();
   }
 
+  // Redireciona para o comprovante
   header("Location: comprovante.php");
   exit;
 }
 
+echo "Acesso inválido.";
+exit;
+
 ?>
+
 
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <title>Finalizar Compra</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="../css/style.css">
   <style>
     .pagamento-box {
       max-width: 600px;
@@ -46,19 +66,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       background: #fff;
     }
     .pagamento-box h2 { text-align: center; }
-    .metodo {
-      margin: 15px 0;
-    }
-    .metodo label { margin-left: 8px; }
-    .pix-img, .boleto-img {
-      display: none;
-      margin-top: 10px;
-      max-width: 300px;
-    }
-    .form-cartao {
-      display: none;
-      margin-top: 10px;
-    }
+    .metodo { margin: 15px 0; }
+    .pix-img, .boleto-img { display: none; margin-top: 10px; max-width: 300px; }
+    .form-cartao { display: none; margin-top: 10px; }
     button {
       margin-top: 20px;
       padding: 10px 20px;
@@ -74,13 +84,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
   <div class="pagamento-box">
     <h2>Escolha a forma de pagamento</h2>
-    <form method="POST" action="">
-      <input type="hidden" name="produtos" id="produtos-hidden">
-
+    <form onsubmit="enviarPagamento(event)">
       <div class="metodo">
         <input type="radio" name="pagamento" value="Pix" id="pix" required>
         <label for="pix">Pix</label><br>
-        <img src="img/pix_qrcode_exemplo.png" alt="Pix QR Code" class="pix-img" id="img-pix">
+        <img src="../img/pix_qrcode_exemplo.png" alt="Pix QR Code" class="pix-img" id="img-pix">
       </div>
 
       <div class="metodo">
@@ -97,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="metodo">
         <input type="radio" name="pagamento" value="Boleto" id="boleto">
         <label for="boleto">Boleto Bancário</label><br>
-        <img src="img/boleto_exemplo.png" alt="Boleto" class="boleto-img" id="img-boleto">
+        <img src="../img/boleto_exemplo.png" alt="Boleto" class="boleto-img" id="img-boleto">
       </div>
 
       <button type="submit">Confirmar Pagamento</button>
@@ -105,24 +113,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </div>
 
   <script>
-    const radioPix = document.getElementById('pix');
-    const radioCartao = document.getElementById('cartao');
-    const radioBoleto = document.getElementById('boleto');
-    const imgPix = document.getElementById('img-pix');
-    const imgBoleto = document.getElementById('img-boleto');
-    const formCartao = document.getElementById('form-cartao');
+  const radioPix = document.getElementById('pix');
+  const radioCartao = document.getElementById('cartao');
+  const radioBoleto = document.getElementById('boleto');
+  const imgPix = document.getElementById('img-pix');
+  const imgBoleto = document.getElementById('img-boleto');
+  const formCartao = document.getElementById('form-cartao');
 
-    document.querySelectorAll('input[name="pagamento"]').forEach(radio => {
-      radio.addEventListener('change', () => {
-        imgPix.style.display = radioPix.checked ? 'block' : 'none';
-        imgBoleto.style.display = radioBoleto.checked ? 'block' : 'none';
-        formCartao.style.display = radioCartao.checked ? 'block' : 'none';
-      });
+  document.querySelectorAll('input[name="pagamento"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      imgPix.style.display = radioPix.checked ? 'block' : 'none';
+      imgBoleto.style.display = radioBoleto.checked ? 'block' : 'none';
+      formCartao.style.display = radioCartao.checked ? 'block' : 'none';
     });
+  });
 
-    // Enviar produtos para o PHP
+  function enviarPagamento(event) {
+    event.preventDefault();
+
     const carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
-    document.getElementById('produtos-hidden').value = JSON.stringify(carrinho);
-  </script>
+    const pagamento = document.querySelector('input[name="pagamento"]:checked');
+
+    if (!pagamento) {
+      alert("Selecione uma forma de pagamento.");
+      return;
+    }
+
+    fetch("salvar_compra.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        carrinho: carrinho,
+        pagamento: pagamento.value
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.redirect) {
+        localStorage.removeItem("carrinho");
+        window.location.href = data.redirect;
+      } else {
+        alert("Erro: " + (data.erro || "Erro inesperado"));
+      }
+    })
+    .catch(() => alert("Erro ao finalizar a compra."));
+  }
+</script>
+
+
+  
 </body>
 </html>
