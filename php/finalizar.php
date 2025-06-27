@@ -3,42 +3,50 @@ session_start();
 include __DIR__ . '/../db/conexao.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  // Valida se os dados foram enviados
-  if (!isset($_POST['produtos'], $_POST['pagamento'])) {
-    die("Dados incompletos.");
+  try {
+    if (!isset($_POST['produtos']) || !isset($_POST['pagamento'])) {
+      throw new Exception("Dados não recebidos.");
+    }
+
+    $produtos = json_decode($_POST['produtos'], true);
+    $forma_pagamento = $_POST['pagamento'];
+    $data_compra = date('Y-m-d H:i:s');
+
+    $_SESSION['ultima_compra'] = $data_compra;
+
+    if (!is_array($produtos) || count($produtos) === 0) {
+      throw new Exception("Carrinho vazio.");
+    }
+
+    foreach ($produtos as $p) {
+      $nome = $conn->real_escape_string($p['nome']);
+      $valor = floatval($p['valor']);
+      $qtd = intval($p['quantidade']);
+
+      $stmt = $conn->prepare("INSERT INTO compras (nome_produto, preco, quantidade, forma_pagamento, data_compra) VALUES (?, ?, ?, ?, ?)");
+      $stmt->bind_param("sdsss", $nome, $valor, $qtd, $forma_pagamento, $data_compra);
+
+      if (!$stmt->execute()) {
+        throw new Exception("Erro ao inserir produto: " . $stmt->error);
+      }
+    }
+
+    header("Location: comprovante.php");
+    exit;
+
+  } catch (Exception $e) {
+    echo "<script>alert('Erro ao finalizar a compra: " . $e->getMessage() . "'); history.back();</script>";
+    exit;
   }
-
-  $produtos = json_decode($_POST['produtos'], true);
-  $forma_pagamento = $_POST['pagamento'];
-  $data_compra = date('Y-m-d H:i:s');
-
-  // Salva a data da compra na sessão para recuperar depois
-  $_SESSION['ultima_compra'] = $data_compra;
-
-  // Salva os produtos no banco
-  foreach ($produtos as $p) {
-    $nome = $conn->real_escape_string($p['nome'] ?? '');
-    $valor = floatval($p['valor'] ?? 0);
-    $qtd = intval($p['quantidade'] ?? 1);
-
-    $stmt = $conn->prepare("INSERT INTO compras (nome_produto, preco, quantidade, forma_pagamento, data_compra) VALUES (?, ?, ?, ?, ?)");
-    $stmt->bind_param("sdiss", $nome, $valor, $qtd, $forma_pagamento, $data_compra);
-    $stmt->execute();
-  }
-
-  header("Location: comprovante.php");
-  exit;
 }
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <title>Finalizar Compra</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="../css/style.css">
   <style>
     .pagamento-box {
       max-width: 600px;
@@ -49,19 +57,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       background: #fff;
     }
     .pagamento-box h2 { text-align: center; }
-    .metodo {
-      margin: 15px 0;
-    }
-    .metodo label { margin-left: 8px; }
-    .pix-img, .boleto-img {
-      display: none;
-      margin-top: 10px;
-      max-width: 300px;
-    }
-    .form-cartao {
-      display: none;
-      margin-top: 10px;
-    }
+    .metodo { margin: 15px 0; }
+    .pix-img, .boleto-img { display: none; margin-top: 10px; max-width: 300px; }
+    .form-cartao { display: none; margin-top: 10px; }
     button {
       margin-top: 20px;
       padding: 10px 20px;
@@ -78,6 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <div class="pagamento-box">
     <h2>Escolha a forma de pagamento</h2>
     <form method="POST" action="">
+      <!-- Campo hidden com os produtos -->
       <input type="hidden" name="produtos" id="produtos-hidden">
 
       <div class="metodo">
@@ -123,12 +122,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       });
     });
 
-    // Enviar produtos para o PHP
-    const carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
-    document.getElementById('produtos-hidden').value = JSON.stringify(carrinho);
+    // Preenche o input hidden com os dados do carrinho
+    document.addEventListener("DOMContentLoaded", () => {
+      const carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
+      document.getElementById("produtos-hidden").value = JSON.stringify(carrinho);
+    });
   </script>
-
-  
 </body>
 </html>
-

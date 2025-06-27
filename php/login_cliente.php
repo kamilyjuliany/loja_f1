@@ -1,8 +1,10 @@
 <?php
+// php/login_cliente.php
 session_start();
 include '../db/conexao.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
   $cpf = $_POST['cpf'] ?? '';
   $senha = $_POST['senha'] ?? '';
 
@@ -10,10 +12,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $sql = "SELECT id, senha FROM clientes WHERE cpf = ?";
   $stmt = $conn->prepare($sql);
   $stmt->bind_param("s", $cpf);
+
   $stmt->execute();
   $result = $stmt->get_result();
 
   if ($result->num_rows === 1) {
+
     $cliente = $result->fetch_assoc();
 
     // Verifica a senha (assumindo que está com password_hash)
@@ -29,6 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   } else {
     $erro = "CPF não encontrado.";
   }
+
 }
 ?>
 

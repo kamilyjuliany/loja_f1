@@ -14,7 +14,7 @@ unset($_SESSION['ultima_compra']); // evita reaproveitar depois por engano
 $sql = "SELECT nome_produto, preco, quantidade, forma_pagamento, data_compra 
         FROM compras 
         WHERE data_compra = ?
-        ORDER BY data_compra DESC";
+        ORDER BY nome_produto";
 
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $data_compra);
@@ -27,8 +27,6 @@ if ($result->num_rows === 0) {
 }
 ?>
 
-
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -36,12 +34,40 @@ if ($result->num_rows === 0) {
   <title>Comprovante de Compra</title>
   <link rel="stylesheet" href="../css/style.css">
   <style>
-    body { font-family: Arial; padding: 40px; background: #f5f5f5; }
-    h1 { text-align: center; color: green; }
-    .compra { margin: 20px auto; max-width: 600px; background: white; padding: 20px; border-radius: 10px; }
-    .item { border-bottom: 1px solid #ccc; padding: 10px 0; }
-    .total { font-size: 18px; font-weight: bold; text-align: right; }
-    .voltar { text-align: center; margin-top: 30px; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      background: #f5f5f5;
+    }
+    h1 {
+      text-align: center;
+      color: green;
+    }
+    .compra {
+      margin: 20px auto;
+      max-width: 600px;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .item {
+      border-bottom: 1px solid #ccc;
+      padding: 10px 0;
+    }
+    .item:last-child {
+      border-bottom: none;
+    }
+    .total {
+      font-size: 18px;
+      font-weight: bold;
+      text-align: right;
+      margin-top: 10px;
+    }
+    .voltar {
+      text-align: center;
+      margin-top: 30px;
+    }
     .voltar button {
       padding: 10px 20px;
       background-color: green;
@@ -67,7 +93,7 @@ if ($result->num_rows === 0) {
         Quantidade: <?= $row['quantidade'] ?><br>
         Preço unitário: R$ <?= number_format($row['preco'], 2, ',', '.') ?><br>
         Subtotal: R$ <?= number_format($subtotal, 2, ',', '.') ?><br>
-        Forma de pagamento: <?= $row['forma_pagamento'] ?><br>
+        Forma de pagamento: <?= htmlspecialchars($row['forma_pagamento']) ?><br>
         Data: <?= date('d/m/Y H:i', strtotime($row['data_compra'])) ?>
       </div>
     <?php endwhile; ?>
@@ -86,5 +112,3 @@ if ($result->num_rows === 0) {
   </script>
 </body>
 </html>
-
-
