@@ -2,19 +2,32 @@
 session_start();
 include '../db/conexao.php';
 
+// Verifica se a data da última compra está definida
+if (!isset($_SESSION['ultima_compra'])) {
+  die("Compra não encontrada.");
+}
 
-$id_cliente = $_SESSION['id_cliente'];
+$data_compra = $_SESSION['ultima_compra'];
+unset($_SESSION['ultima_compra']); // evita reaproveitar depois por engano
 
+// Busca os dados com base na data da compra
 $sql = "SELECT nome_produto, preco, quantidade, forma_pagamento, data_compra 
         FROM compras 
         WHERE data_compra = ?
         ORDER BY data_compra DESC";
+
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $data_compra);
-
 $stmt->execute();
 $result = $stmt->get_result();
+
+// Se não encontrar nenhum registro, mostra erro
+if ($result->num_rows === 0) {
+  die("Compra não encontrada.");
+}
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -28,6 +41,16 @@ $result = $stmt->get_result();
     .compra { margin: 20px auto; max-width: 600px; background: white; padding: 20px; border-radius: 10px; }
     .item { border-bottom: 1px solid #ccc; padding: 10px 0; }
     .total { font-size: 18px; font-weight: bold; text-align: right; }
+    .voltar { text-align: center; margin-top: 30px; }
+    .voltar button {
+      padding: 10px 20px;
+      background-color: green;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -40,7 +63,7 @@ $result = $stmt->get_result();
       $total += $subtotal;
     ?>
       <div class="item">
-        <strong><?= $row['nome_produto'] ?></strong><br>
+        <strong><?= htmlspecialchars($row['nome_produto']) ?></strong><br>
         Quantidade: <?= $row['quantidade'] ?><br>
         Preço unitário: R$ <?= number_format($row['preco'], 2, ',', '.') ?><br>
         Subtotal: R$ <?= number_format($subtotal, 2, ',', '.') ?><br>
@@ -51,29 +74,17 @@ $result = $stmt->get_result();
     <p class="total">Total da compra: R$ <?= number_format($total, 2, ',', '.') ?></p>
   </div>
 
-  <div style="text-align: center; margin-top: 30px;">
-  <button onclick="voltarParaInicio()" style="
-    padding: 10px 20px;
-    background-color: green;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 16px;
-    cursor: pointer;">
-    Voltar para Loja
-  </button>
-</div>
+  <div class="voltar">
+    <button onclick="voltarParaInicio()">Voltar para Loja</button>
+  </div>
 
-<script>
-  function voltarParaInicio() {
-    localStorage.removeItem("carrinho"); // limpa o carrinho
-    window.location.href = "../cliente.php"; // volta para a loja
-  }
-  
-  $conn->query("DELETE FROM compras WHERE id_cliente = $id_cliente AND data_compra = '$data_compra'");
-
-</script>
-
+  <script>
+    function voltarParaInicio() {
+      localStorage.removeItem("carrinho");
+      window.location.href = "../cliente.php";
+    }
+  </script>
 </body>
 </html>
+
 

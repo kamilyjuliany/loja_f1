@@ -1,37 +1,37 @@
 <?php
-// finalizar.php
 session_start();
 include __DIR__ . '/../db/conexao.php';
 
-
-if (!isset($_SESSION['id_cliente'])) {
-  header("Location: login_cliente.php");
-exit;
-}
-
-$id_cliente = $_SESSION['id_cliente'];
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $produtos = json_decode($_POST['produtos'], true); 
+  // Valida se os dados foram enviados
+  if (!isset($_POST['produtos'], $_POST['pagamento'])) {
+    die("Dados incompletos.");
+  }
+
+  $produtos = json_decode($_POST['produtos'], true);
   $forma_pagamento = $_POST['pagamento'];
+  $data_compra = date('Y-m-d H:i:s');
 
+  // Salva a data da compra na sessão para recuperar depois
+  $_SESSION['ultima_compra'] = $data_compra;
+
+  // Salva os produtos no banco
   foreach ($produtos as $p) {
-    $nome = $conn->real_escape_string($p['nome']);
-    $valor = floatval($p['valor']);
-    $qtd = intval($p['quantidade']);
+    $nome = $conn->real_escape_string($p['nome'] ?? '');
+    $valor = floatval($p['valor'] ?? 0);
+    $qtd = intval($p['quantidade'] ?? 1);
 
-    $stmt = $conn->prepare("INSERT INTO compras (id_cliente, nome_produto, preco, quantidade, forma_pagamento) VALUES (?, ?, ?, ?, ?)");
-    $stmt->bind_param("isdss", $id_cliente, $nome, $valor, $qtd, $forma_pagamento);
+    $stmt = $conn->prepare("INSERT INTO compras (nome_produto, preco, quantidade, forma_pagamento, data_compra) VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param("sdiss", $nome, $valor, $qtd, $forma_pagamento, $data_compra);
     $stmt->execute();
   }
 
   header("Location: comprovante.php");
-exit;
-
-
+  exit;
 }
-
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="pt-BR">

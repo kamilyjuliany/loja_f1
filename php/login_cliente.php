@@ -2,83 +2,118 @@
 session_start();
 include '../db/conexao.php';
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $cpf = $_POST['cpf'] ?? '';
+  $senha = $_POST['senha'] ?? '';
 
-// Verifica se a data da compra foi enviada via GET
-if (!isset($_GET['data'])) {
-  die("Dados inválidos.");
+  // Consulta cliente pelo CPF
+  $sql = "SELECT id, senha FROM clientes WHERE cpf = ?";
+  $stmt = $conn->prepare($sql);
+  $stmt->bind_param("s", $cpf);
+  $stmt->execute();
+  $result = $stmt->get_result();
+
+  if ($result->num_rows === 1) {
+    $cliente = $result->fetch_assoc();
+
+    // Verifica a senha (assumindo que está com password_hash)
+    if (password_verify($senha, $cliente['senha'])) {
+      $_SESSION['id_cliente'] = $cliente['id'];
+
+      // Redireciona para a loja (cliente.php)
+      header("Location: ../cliente.php");
+      exit;
+    } else {
+      $erro = "Senha incorreta.";
+    }
+  } else {
+    $erro = "CPF não encontrado.";
+  }
 }
-$data_compra = $_GET['data'];
-
-// Consulta os dados da compra
-$sql = "SELECT nome_produto, preco, quantidade, forma_pagamento, data_compra 
-        FROM compras 
-        WHERE id_cliente = ? AND data_compra = ?
-        ORDER BY data_compra DESC";
-
-$stmt = $conn->prepare("INSERT INTO compras (nome_produto, preco, quantidade, forma_pagamento) VALUES (?, ?, ?, ?)");
-$stmt->bind_param("sdss", $nome, $valor, $qtd, $forma_pagamento);
-$stmt->execute();
-$result = $stmt->get_result();
 ?>
-
 
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Comprovante de Compra</title>
-  <link rel="stylesheet" href="../css/style.css">
+  <title>Login Cliente</title>
   <style>
-    body { font-family: Arial; padding: 40px; background: #f5f5f5; }
-    h1 { text-align: center; color: green; }
-    .compra { margin: 20px auto; max-width: 600px; background: white; padding: 20px; border-radius: 10px; }
-    .item { border-bottom: 1px solid #ccc; padding: 10px 0; }
-    .total { font-size: 18px; font-weight: bold; text-align: right; }
-    .voltar {
-      text-align: center;
-      margin-top: 30px;
+    body {
+      background-color: #f0f2f5;
+      font-family: Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
     }
-    .voltar button {
-      padding: 10px 20px;
+
+    .login-box {
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .login-box h1 {
+      text-align: center;
+      color: green;
+      margin-bottom: 20px;
+    }
+
+    .login-box label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    .login-box input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    .login-box button {
+      width: 100%;
       background-color: green;
       color: white;
       border: none;
-      border-radius: 6px;
+      padding: 12px;
+      border-radius: 5px;
       font-size: 16px;
       cursor: pointer;
     }
+
+    .login-box p {
+      color: red;
+      text-align: center;
+    }
   </style>
 </head>
+
 <body>
-  <h1>Comprovante de Compra</h1>
-  <div class="compra">
-    <?php
-    $total = 0;
-    while ($row = $result->fetch_assoc()):
-      $subtotal = $row['preco'] * $row['quantidade'];
-      $total += $subtotal;
-    ?>
-      <div class="item">
-        <strong><?= $row['nome_produto'] ?></strong><br>
-        Quantidade: <?= $row['quantidade'] ?><br>
-        Preço unitário: R$ <?= number_format($row['preco'], 2, ',', '.') ?><br>
-        Subtotal: R$ <?= number_format($subtotal, 2, ',', '.') ?><br>
-        Forma de pagamento: <?= $row['forma_pagamento'] ?><br>
-        Data: <?= date('d/m/Y H:i', strtotime($row['data_compra'])) ?>
-      </div>
-    <?php endwhile; ?>
-    <p class="total">Total da compra: R$ <?= number_format($total, 2, ',', '.') ?></p>
-  </div>
+  <div class="login-box">
+    <h1>Login do Cliente</h1>
 
-  <div class="voltar">
-    <button onclick="voltarParaInicio()">Voltar para Loja</button>
-  </div>
+    <?php if (isset($erro)): ?>
+      <p><?= $erro ?></p>
+    <?php endif; ?>
 
-  <script>
-    function voltarParaInicio() {
-      localStorage.removeItem("carrinho");
-      window.location.href = "../cliente.php";
-    }
-  </script>
+    <form method="POST">
+      <label for="cpf">CPF:</label>
+      <input type="text" name="cpf" id="cpf" required>
+
+      <label for="senha">Senha:</label>
+      <input type="password" name="senha" id="senha" required>
+
+      <button type="submit">Entrar</button>
+    </form>
+  </div>
 </body>
+
 </html>
