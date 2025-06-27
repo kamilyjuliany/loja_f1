@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 20/06/2025 às 22:39
+-- Tempo de geração: 27/06/2025 às 23:34
 -- Versão do servidor: 10.4.32-MariaDB
 -- Versão do PHP: 8.2.12
 
@@ -54,7 +54,10 @@ CREATE TABLE `clientes` (
 --
 
 INSERT INTO `clientes` (`id`, `nome`, `cpf`, `email`, `senha`) VALUES
-(1, 'Juninho', '12345678910', 'teste@gmail.com', '$2y$10$IWRq0ATqeb8f/MOx7NckQ.RcSmcuz3V1r/4NX8wT5Oqu5HzdrDWnG');
+(1, 'Juninho', '12345678910', 'teste@gmail.com', '$2y$10$IWRq0ATqeb8f/MOx7NckQ.RcSmcuz3V1r/4NX8wT5Oqu5HzdrDWnG'),
+(2, 'Sara Santos', '45632413526', 'sara@gmail.com', '$2y$10$AG.p.kJCAIcA8BI/F6gFOuVZtPu1EiAO5PRtpsyFqhMY37k8HbKzm'),
+(3, 'Juliany', '05614636110', 'juliany@gmail.com', '1234'),
+(4, 'juliany', '05614636110', 'juliany@gmail.com', '1234');
 
 -- --------------------------------------------------------
 
@@ -64,11 +67,44 @@ INSERT INTO `clientes` (`id`, `nome`, `cpf`, `email`, `senha`) VALUES
 
 CREATE TABLE `compras` (
   `id` int(11) NOT NULL,
-  `id_cliente` int(11) NOT NULL,
+  `id_cliente` int(11) DEFAULT NULL,
   `nome_produto` varchar(100) DEFAULT NULL,
   `preco` decimal(10,2) DEFAULT NULL,
-  `data_compra` datetime DEFAULT current_timestamp()
+  `data_compra` datetime DEFAULT current_timestamp(),
+  `quantidade` int(11) NOT NULL DEFAULT 1,
+  `forma_pagamento` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Despejando dados para a tabela `compras`
+--
+
+INSERT INTO `compras` (`id`, `id_cliente`, `nome_produto`, `preco`, `data_compra`, `quantidade`, `forma_pagamento`) VALUES
+(1, 3, 'Camiseta Visa Cash', 359.90, '2025-06-23 16:05:45', 2, 'Pix'),
+(2, 3, 'Camiseta Stake', 299.90, '2025-06-23 16:05:45', 1, 'Pix'),
+(3, 3, 'Camiseta Stake', 299.90, '2025-06-23 17:01:46', 3, 'Pix'),
+(4, 3, 'Camiseta Haas', 315.00, '2025-06-23 17:01:46', 1, 'Pix'),
+(5, 3, 'Camiseta Stake', 299.90, '2025-06-23 17:03:29', 1, 'Boleto'),
+(6, 3, 'Camiseta Visa Cash', 359.90, '2025-06-23 17:03:48', 1, 'Pix'),
+(7, 3, 'Camiseta Mercedes', 359.90, '2025-06-23 17:04:22', 1, 'Pix'),
+(8, 3, 'Camiseta Visa Cash', 359.90, '2025-06-23 17:12:33', 1, 'Pix'),
+(9, NULL, 'Camiseta Stake', 299.90, '2025-06-27 17:56:52', 1, 'Pix'),
+(10, NULL, 'Camiseta Haas', 315.00, '2025-06-27 17:56:52', 1, 'Pix'),
+(11, NULL, 'Camiseta Stake', 299.90, '2025-06-27 17:56:58', 1, 'Boleto'),
+(12, NULL, 'Camiseta Haas', 315.00, '2025-06-27 17:56:58', 1, 'Boleto'),
+(13, NULL, 'Camiseta Stake', 299.90, '2025-06-27 17:57:00', 1, 'Pix'),
+(14, NULL, 'Camiseta Haas', 315.00, '2025-06-27 17:57:00', 1, 'Pix'),
+(15, NULL, 'Camiseta Stake', 299.90, '2025-06-27 22:09:22', 1, 'Pix'),
+(16, NULL, 'Camiseta Haas', 315.00, '2025-06-27 22:09:22', 1, 'Pix'),
+(17, NULL, 'Camiseta Stake', 299.90, '2025-06-27 22:19:46', 1, 'Pix'),
+(18, NULL, 'Camiseta Haas', 315.00, '2025-06-27 22:19:46', 1, 'Pix'),
+(19, NULL, 'Camiseta Aston Martin', 389.90, '2025-06-27 22:42:17', 1, 'Pix'),
+(20, NULL, 'Camiseta Alpine', 359.90, '2025-06-27 22:42:17', 1, 'Pix'),
+(21, NULL, 'Camiseta Ferrari', 300.00, '2025-06-27 22:42:17', 1, 'Pix'),
+(22, NULL, 'Camiseta Mclaren', 389.99, '2025-06-27 22:42:44', 1, 'Boleto'),
+(23, NULL, 'Camiseta Aston Martin', 389.90, '2025-06-27 23:07:54', 1, 'Pix'),
+(24, NULL, 'Camiseta Aston Martin', 389.90, '2025-06-27 23:28:16', 2, 'Pix'),
+(25, NULL, 'Camiseta Mercedes', 359.90, '2025-06-27 23:28:31', 1, 'Boleto');
 
 -- --------------------------------------------------------
 
@@ -168,13 +204,13 @@ ALTER TABLE `carrinho`
 -- AUTO_INCREMENT de tabela `clientes`
 --
 ALTER TABLE `clientes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de tabela `compras`
 --
 ALTER TABLE `compras`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT de tabela `produtos`
