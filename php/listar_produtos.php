@@ -1,20 +1,26 @@
 <?php
-include '../db/conexao.php';
-
-$sql = "SELECT * FROM produtos";
+include 'db/conexao.php';
+$sql = "SELECT * FROM produtos ORDER BY id DESC";
 $result = $conn->query($sql);
 
 if ($result->num_rows > 0) {
-  while ($produto = $result->fetch_assoc()) {
-    echo "<div>";
-    echo "<h3>{$produto['nome']}</h3>";
-    echo "<p>R$ {$produto['valor']} - Tamanho: {$produto['tamanho']} - Equipe: {$produto['equipe']}</p>";
-    echo "<button onclick=\"adicionarAoCarrinho({$produto['id']}, '{$produto['nome']}', {$produto['valor']})\">Adicionar ao Carrinho</button>";
-    echo "</div><hr>";
-  }
-} else {
-  echo "Nenhum produto encontrado.";
-}
+  echo '<div class="product-grid">';
+  while ($p = $result->fetch_assoc()) {
+    // transforma o array $p em JSON seguro para atributo JS
+    $json = json_encode($p, JSON_HEX_APOS|JSON_HEX_QUOT);
 
-$conn->close();
+    echo '<div class="product-card"'
+       . ' data-team="'.htmlspecialchars($p['equipe']).'"'
+       . " onclick='abrirModal($json)'" 
+       . '>';
+    echo '<img src="img/produtos/'.htmlspecialchars($p['imagem']).'" alt="'.htmlspecialchars($p['nome']).'">';
+    echo '<h3>'.htmlspecialchars($p['nome']).'</h3>';
+    echo '<p class="preco">a partir de:</p>';
+    echo '<p class="preco-valor">R$ '.number_format($p['valor'],2,',','.').'</p>';
+    echo '</div>';
+  }
+  echo '</div>';
+} else {
+  echo '<p style="text-align:center;">Nenhum produto encontrado.</p>';
+}
 ?>

@@ -1,0 +1,114 @@
+<?php
+session_start();
+include '../db/conexao.php';
+
+// Verifica se a data da última compra está definida
+if (!isset($_SESSION['ultima_compra'])) {
+  die("Compra não encontrada.");
+}
+
+$data_compra = $_SESSION['ultima_compra'];
+unset($_SESSION['ultima_compra']); // evita reaproveitar depois por engano
+
+// Busca os dados com base na data da compra
+$sql = "SELECT nome_produto, preco, quantidade, forma_pagamento, data_compra 
+        FROM compras 
+        WHERE data_compra = ?
+        ORDER BY nome_produto";
+
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("s", $data_compra);
+$stmt->execute();
+$result = $stmt->get_result();
+
+// Se não encontrar nenhum registro, mostra erro
+if ($result->num_rows === 0) {
+  die("Compra não encontrada.");
+}
+?>
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Comprovante de Compra</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      background: #f5f5f5;
+    }
+    h1 {
+      text-align: center;
+      color: green;
+    }
+    .compra {
+      margin: 20px auto;
+      max-width: 600px;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .item {
+      border-bottom: 1px solid #ccc;
+      padding: 10px 0;
+    }
+    .item:last-child {
+      border-bottom: none;
+    }
+    .total {
+      font-size: 18px;
+      font-weight: bold;
+      text-align: right;
+      margin-top: 10px;
+    }
+    .voltar {
+      text-align: center;
+      margin-top: 30px;
+    }
+    .voltar button {
+      padding: 10px 20px;
+      background-color: green;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Comprovante de Compra</h1>
+  <div class="compra">
+    <?php
+    $total = 0;
+    while ($row = $result->fetch_assoc()):
+      $subtotal = $row['preco'] * $row['quantidade'];
+      $total += $subtotal;
+    ?>
+      <div class="item">
+        <strong><?= htmlspecialchars($row['nome_produto']) ?></strong><br>
+        Quantidade: <?= $row['quantidade'] ?><br>
+        Preço unitário: R$ <?= number_format($row['preco'], 2, ',', '.') ?><br>
+        Subtotal: R$ <?= number_format($subtotal, 2, ',', '.') ?><br>
+        Forma de pagamento: <?= htmlspecialchars($row['forma_pagamento']) ?><br>
+        Data: <?= date('d/m/Y H:i', strtotime($row['data_compra'])) ?>
+      </div>
+    <?php endwhile; ?>
+    <p class="total">Total da compra: R$ <?= number_format($total, 2, ',', '.') ?></p>
+  </div>
+
+  <div class="voltar">
+    <button onclick="voltarParaInicio()">Voltar para Loja</button>
+  </div>
+
+  <script>
+    function voltarParaInicio() {
+      localStorage.removeItem("carrinho");
+      window.location.href = "../cliente.php";
+    }
+  </script>
+</body>
+</html>
